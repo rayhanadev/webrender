@@ -1,6 +1,11 @@
 import Elysia, { t } from "elysia";
 import puppeteer from "puppeteer";
 
+const { PUPPETEER_EXECUTABLE_PATH, RUNNING_IN_DOCKER } = process.env;
+const puppeteerArgs = RUNNING_IN_DOCKER
+  ? ["--no-sandbox", "--disable-setuid-sandbox"]
+  : [];
+
 const app = new Elysia();
 
 app.get("/", (ctx) => {
@@ -12,7 +17,10 @@ app.get(
   async (ctx) => {
     const { url, fullPage } = ctx.query;
 
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({
+      args: puppeteerArgs,
+      executablePath: PUPPETEER_EXECUTABLE_PATH ?? undefined,
+    });
 
     const page = await browser.newPage();
     await page.goto(url);
